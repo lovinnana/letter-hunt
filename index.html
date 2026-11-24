@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>字母大搜查｜AR 英文字母闖關</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#DDF0FF; --surface:#FFFFFF; --ink:#1C2B4B; --muted:#4F5F80; --line:#B9D5F0;
+  --sun:#FFC83D; --sun-d:#D99A12; --leaf:#2FAE6A; --leaf-d:#1E7F4B;
+  --berry:#F0567A; --berry-d:#B8324F; --sky:#4A90E2; --sky-d:#2C67AE;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1930; --surface:#182649; --ink:#EEF4FF; --muted:#A8B8D8; --line:#2E4373; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1930; --surface:#182649; --ink:#EEF4FF; --muted:#A8B8D8; --line:#2E4373; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  line-height:1.6; -webkit-tap-highlight-color:transparent;
+}
+.en{font-family:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif}
+.view{display:none}
+.view.on{display:block}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+
+/* toy-block letters */
+.block{
+  --c:var(--sun); --d:var(--sun-d); --s:64px;
+  display:inline-grid; place-items:center; width:var(--s); height:var(--s);
+  border-radius:16%; background:var(--c); color:#1C2B4B;
+  font-family:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif; font-weight:800;
+  font-size:calc(var(--s) * .66); line-height:1; padding-top:.1em;
+  box-shadow:0 calc(var(--s) * .08) 0 var(--d);
+}
+.block.leaf{--c:var(--leaf);--d:var(--leaf-d);color:#fff}
+.block.berry{--c:var(--berry);--d:var(--berry-d);color:#fff}
+.block.sky{--c:var(--sky);--d:var(--sky-d);color:#fff}
+
+/* buttons */
+.btn{
+  display:block; width:100%; border:0; border-radius:18px; padding:15px 20px;
+  font-weight:700; font-size:1.15rem; cursor:pointer; text-decoration:none; text-align:center;
+  color:#1C2B4B; background:var(--sun); box-shadow:0 5px 0 var(--sun-d); transition:transform .08s, box-shadow .08s;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--sun-d)}
+.btn.leaf{background:var(--leaf);color:#fff;box-shadow:0 5px 0 var(--leaf-d)}
+.btn.leaf:active{box-shadow:0 2px 0 var(--leaf-d)}
+.btn.plain{background:transparent;color:var(--ink);box-shadow:none;border:2px solid var(--line)}
+.btn.plain:active{transform:none}
+.back{
+  border:2px solid var(--line); background:var(--surface); color:var(--ink); border-radius:12px;
+  padding:5px 14px; cursor:pointer; font-weight:700; text-decoration:none; font-size:.95rem; white-space:nowrap;
+}
+
+/* home */
+#v-home.on{min-height:100%;display:grid;place-items:center;padding:28px 22px}
+.home-inner{max-width:420px;width:100%;text-align:center}
+.hero-blocks{display:flex;justify-content:center;gap:12px;margin:0 0 30px}
+.hero-blocks .block{--s:clamp(70px,22vw,100px)}
+.hero-blocks .block:nth-child(1){transform:rotate(-9deg) translateY(6px)}
+.hero-blocks .block:nth-child(2){transform:rotate(3deg) translateY(-8px)}
+.hero-blocks .block:nth-child(3){transform:rotate(10deg) translateY(4px)}
+h1{font-size:clamp(2.1rem,10vw,2.9rem);font-weight:900;margin:0 0 .2em;letter-spacing:.06em;line-height:1.2}
+.lead{color:var(--muted);margin:0 0 30px;font-size:1.05rem}
+.home-inner .btn + .btn{margin-top:14px}
+
+/* teacher */
+.page{max-width:780px;margin:0 auto;padding:20px 20px 56px}
+.topline{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+h2{font-size:1.55rem;margin:0;font-weight:900}
+.panel{background:var(--surface);border-radius:22px;padding:22px;border:2px solid var(--line)}
+label.f{display:block;font-weight:700;margin-bottom:6px}
+input[type=text]{
+  width:100%; font-size:1.3rem; padding:11px 14px; border-radius:14px; border:2px solid var(--line);
+  background:var(--bg); color:var(--ink); letter-spacing:.06em;
+  font-family:"Baloo 2","Noto Sans TC",system-ui,sans-serif; font-weight:600;
+}
+.hint{color:var(--muted);font-size:.92rem;margin:6px 0 18px}
+.opts{display:flex;flex-wrap:wrap;gap:12px 26px;margin-bottom:20px}
+.opts label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.opts input[type=checkbox]{width:20px;height:20px;accent-color:var(--leaf)}
+select{padding:6px 10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .btn{flex:1 1 180px}
+.how{margin:26px 4px 0;padding-left:1.4em}
+.how li{margin-bottom:6px}
+.how-note{color:var(--muted);font-size:.9rem;margin:12px 4px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-top:26px}
+.card{background:#fff;color:#1C2B4B;border-radius:18px;border:3px dashed #93B2D4;padding:14px 14px 12px;text-align:center;break-inside:avoid}
+.card svg{width:100%;height:auto;display:block;border-radius:6px}
+.card .tag{font-weight:900;font-size:1.05rem;margin-bottom:8px}
+.card .tiny{font-family:"Baloo 2",system-ui,sans-serif;color:#7A8CAD;font-size:.95rem;margin-top:6px;font-weight:600}
+.card.mission{border:3px solid #D99A12;background:#FFF3C7}
+.card.mission .tiny{color:#6B5A1E}
+.empty{color:var(--muted)}
+
+/* play */
+#v-play.on{position:fixed;inset:0;background:#000;overflow:hidden}
+#cam,#ov{position:absolute;inset:0;width:100%;height:100%}
+#cam{object-fit:cover}
+.hud{
+  position:absolute; left:0; right:0; top:0; z-index:2;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 26px;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  background:linear-gradient(rgba(10,20,42,.8),rgba(10,20,42,0));
+}
+.hud-top{width:100%;display:flex;justify-content:space-between;align-items:center;color:#fff;gap:10px}
+.back.dark{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.35)}
+.progress{font-weight:700;font-size:.95rem}
+.slots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:40px;align-items:center}
+.slot{
+  width:var(--s); height:var(--s); border-radius:16%; border:3px dashed rgba(255,255,255,.75);
+  display:grid; place-items:center; color:rgba(255,255,255,.5); padding-top:.1em;
+  font-family:"Baloo 2",system-ui,sans-serif; font-weight:800; font-size:calc(var(--s) * .56); line-height:1;
+}
+.slots .block.pop{animation:pop .5s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-12deg)}to{transform:scale(1) rotate(0)}}
+.no-mission{color:#fff;font-weight:700}
+.aim{
+  position:absolute; left:50%; top:56%; width:min(58vmin,320px); aspect-ratio:1; z-index:1;
+  transform:translate(-50%,-50%); border-radius:28px; border:3px dashed rgba(255,255,255,.65);
+  display:grid; place-items:end center; padding-bottom:14px; color:#fff; font-weight:700;
+  text-shadow:0 1px 3px rgba(0,0,0,.6); transition:opacity .25s; pointer-events:none;
+}
+.aim.hide{opacity:0}
+.toast{
+  position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 26px); z-index:3;
+  transform:translateX(-50%); background:var(--surface); color:var(--ink);
+  padding:12px 20px; border-radius:16px; font-weight:700; font-size:1.05rem;
+  width:max-content; max-width:calc(100% - 32px); text-align:center;
+  box-shadow:0 6px 0 rgba(0,0,0,.28); opacity:0; transition:opacity .2s; pointer-events:none;
+}
+.toast.show{opacity:1}
+.sheet{position:absolute;inset:0;z-index:4;display:none;place-items:center;padding:28px 22px;background:var(--bg);color:var(--ink);overflow:auto}
+.sheet.on{display:grid}
+.sheet-inner{max-width:420px;width:100%;text-align:center}
+.sheet h3{font-size:1.7rem;font-weight:900;margin:0 0 8px}
+.sheet p{color:var(--muted);margin:0 0 24px}
+.sheet .btn + .btn, .sheet .btn + details{margin-top:14px}
+.err{color:var(--berry);font-weight:700;margin:16px 0 0}
+.ok{color:var(--leaf);font-weight:700;margin:16px 0 0}
+details{text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px 16px}
+summary{cursor:pointer;font-weight:700}
+details .row{margin-top:12px}
+.done-word{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0 22px}
+.done-word .block{animation:bounce 1s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@media (prefers-reduced-motion: reduce){
+  .slots .block.pop,.done-word .block{animation:none}
+}
+@media print{
+  :root{padding:0}
+  body{background:#fff}
+  .no-print{display:none!important}
+  .page{max-width:none;padding:0}
+  .cards{grid-template-columns:repeat(2,1fr);gap:10mm;margin:0}
+  .card{border-color:#777}
+  @page{margin:12mm}
+}
+</style>
+</head>
+<body>
+
+<section id="v-home" class="view">
+  <div class="home-inner">
+    <div class="hero-blocks" aria-hidden="true">
+      <span class="block">A</span><span class="block leaf">B</span><span class="block sky">C</span>
+    </div>
+    <h1>字母大搜查</h1>
+    <p class="lead">字母藏在教室的各個角落。<br>拿起手機對準字母卡，把單字拼出來！</p>
+    <a class="btn leaf" href="#play">開始闖關</a>
+    <a class="btn plain" href="#teacher">老師設定與列印卡片</a>
+  </div>
+</section>
+
+<section id="v-teacher" class="view">
+  <div class="page">
+    <div class="topline no-print">
+      <a class="back" href="#">回首頁</a>
+      <h2>老師設定</h2>
+    </div>
+    <div class="panel no-print">
+      <label class="f" for="words">要拼的英文單字</label>
+      <input id="words" type="text" value="CAT, DOG, SUN" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <p class="hint">用逗號分開，最多 12 個單字。小孩會一個接一個完成。</p>
+      <div class="opts">
+        <label>干擾字母
+          <select id="decoys">
+            <option value="0">不加</option>
+            <option value="2">2 張</option>
+            <option value="4" selected>4 張</option>
+            <option value="6">6 張</option>
+          </select>
+        </label>
+        <label><input id="showLetter" type="checkbox" checked> 卡片下方印小字母（方便老師擺放）</label>
+      </div>
+      <div class="row">
+        <button class="btn leaf" id="build" type="button">更新卡片</button>
+        <button class="btn" id="print" type="button">列印卡片</button>
+      </div>
+      <ol class="how">
+        <li>列印下方的卡片，沿虛線剪開。</li>
+        <li>任務卡放在起點，字母卡藏在空間各處（牆上、桌下、書櫃旁…）。</li>
+        <li>小孩用手機打開這個網頁，按「開始闖關」，先掃任務卡，再去找字母。</li>
+        <li>找到單字裡的字母會變綠色並唸出發音；找到干擾字母會變紅色。</li>
+      </ol>
+      <p class="how-note">在電腦上測試：進入闖關畫面後，按鍵盤的字母鍵可以模擬掃到該字母卡。</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div>
+</section>
+
+<section id="v-play" class="view">
+  <video id="cam" playsinline muted></video>
+  <canvas id="ov"></canvas>
+  <div class="aim" id="aim">對準字母卡</div>
+  <div class="hud">
+    <div class="hud-top">
+      <a class="back dark" href="#">離開</a>
+      <span class="progress" id="progress"></span>
+    </div>
+    <div class="slots" id="slots"></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="sheet on" id="startSheet">
+    <div class="sheet-inner">
+      <h3>準備出發</h3>
+      <p>按下按鈕後，請允許使用相機。<br>先到起點掃描任務卡。</p>
+      <button class="btn leaf" id="startBtn" type="button">開啟相機</button>
+      <details>
+        <summary>沒有任務卡？手動輸入單字</summary>
+        <div class="row">
+          <input id="manualWords" type="text" placeholder="CAT, DOG" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <button class="btn" id="manualBtn" type="button">載入任務</button>
+        </div>
+      </details>
+      <p class="ok" id="loadMsg" hidden></p>
+      <p class="err" id="camErr" hidden></p>
+    </div>
+  </div>
+
+  <div class="sheet" id="doneSheet">
+    <div class="sheet-inner">
+      <h3 id="doneTitle">拼出來了！</h3>
+      <div class="done-word" id="doneWord"></div>
+      <p id="doneText"></p>
+      <button class="btn leaf" id="nextBtn" type="button">下一個單字</button>
+      <a class="btn plain" href="#" id="doneHome">回首頁</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const KEY = 'letterhunt-v1';
+const BLOCK_COLORS = ['sun','leaf','sky'];
+const PAL = {
+  sun:{c:'#FFC83D',d:'#D99A12',t:'#1C2B4B'},
+  leaf:{c:'#2FAE6A',d:'#1E7F4B',t:'#FFFFFF'},
+  berry:{c:'#F0567A',d:'#B8324F',t:'#FFFFFF'},
+  sky:{c:'#4A90E2',d:'#2C67AE',t:'#FFFFFF'}
+};
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let state = {words:[], idx:0, found:[]};
+try{
+  const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (s && Array.isArray(s.words)) state = s;
+}catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+function cleanWords(str){
+  return String(str).toUpperCase().split(/[\s,，、;；]+/)
+    .map(w => w.replace(/[^A-Z]/g,'')).filter(Boolean).slice(0,12);
+}
+
+/* ---------- speech & feedback ---------- */
+function pickVoice(){
+  try{
+    const vs = speechSynthesis.getVoices();
+    return vs.find(v => /^en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+  }catch(e){ return null; }
+}
+function say(text, rate){
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = rate || .8;
+    const v = pickVoice(); if (v) u.voice = v;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
+function primeSpeech(){
+  try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }catch(e){}
+}
+function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+let toastTimer;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ---------- routing ---------- */
+function route(){
+  const h = location.hash.slice(1);
+  const v = (h === 'teacher' || h === 'play') ? h : 'home';
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('on', el.id === 'v-' + v));
+  if (v !== 'play') stopCam();
+  if (v === 'play') enterPlay();
+  window.scrollTo(0,0);
+}
+addEventListener('hashchange', route);
+
+/* ---------- teacher: cards ---------- */
+function qrSvg(text){
+  const q = qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(), m = 3, size = n + m*2;
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r,c)) d += 'M' + (c+m) + ' ' + (r+m) + 'h1v1h-1z';
+  return '<svg viewBox="0 0 ' + size + ' ' + size + '" shape-rendering="crispEdges" role="img" aria-label="QR code">'
+    + '<rect width="' + size + '" height="' + size + '" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
+}
+function card(code, tag, cls, tiny){
+  const el = document.createElement('div');
+  el.className = 'card ' + (cls || '');
+  el.innerHTML = '<div class="tag">' + tag + '</div>' + qrSvg(code) + (tiny ? '<div class="tiny">' + tiny + '</div>' : '');
+  return el;
+}
+function buildCards(){
+  const box = $('#cards'); box.innerHTML = '';
+  if (typeof qrcode !== 'function'){ box.innerHTML = '<p class="empty">卡片產生工具載入失敗，請重新整理頁面。</p>'; return; }
+  const words = cleanWords($('#words').value);
+  if (!words.length){ box.innerHTML = '<p class="empty">請先輸入至少一個英文單字。</p>'; return; }
+  const letters = [...new Set(words.join(''))];
+  const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(c => !letters.includes(c));
+  const decoys = [];
+  const n = +$('#decoys').value;
+  while (decoys.length < n && pool.length) decoys.push(pool.splice(Math.random()*pool.length|0, 1)[0]);
+  const show = $('#showLetter').checked;
+  box.append(card('LH:W:' + words.join(','), '任務卡｜放在起點', 'mission', words.join('  ')));
+  [...letters, ...decoys].sort().forEach(L => {
+    const tiny = show ? (L + (decoys.includes(L) ? '（干擾）' : '')) : '';
+    box.append(card('LH:L:' + L, '字母卡 ★', '', tiny));
+  });
+}
+$('#build').addEventListener('click', buildCards);
+$('#print').addEventListener('click', () => {
+  try{ window.print(); }catch(e){ alert('無法直接列印，請使用瀏覽器選單中的「列印」。'); }
+});
+
+/* ---------- play: mission state ---------- */
+function loadMission(words){
+  state = {words, idx:0, found:[]}; save(); renderSlots();
+}
+function currentWord(){ return state.words[state.idx] || ''; }
+function renderSlots(newL){
+  const box = $('#slots'), word = currentWord();
+  box.innerHTML = '';
+  if (!state.words.length){
+    $('#progress').textContent = '';
+    box.innerHTML = '<span class="no-mission">先掃描任務卡</span>';
+    return;
+  }
+  if (!word){ $('#progress').textContent = '全部完成'; return; }
+  $('#progress').textContent = '單字 ' + (state.idx + 1) + ' / ' + state.words.length;
+  const s = Math.max(30, Math.min(56, Math.floor((Math.min(innerWidth, 600) - 40) / word.length) - 8));
+  [...word].forEach((ch, i) => {
+    let el;
+    if (state.found.includes(ch)){
+      el = document.createElement('span');
+      el.className = 'block ' + BLOCK_COLORS[i % 3] + (ch === newL ? ' pop' : '');
+    } else {
+      el = document.createElement('span'); el.className = 'slot';
+    }
+    el.textContent = ch;
+    el.style.setProperty('--s', s + 'px');
+    box.append(el);
+  });
+}
+function complete(){
+  const word = currentWord();
+  const last = state.idx >= state.words.length - 1;
+  const box = $('#doneWord'); box.innerHTML = '';
+  const s = Math.max(36, Math.min(64, Math.floor((Math.min(innerWidth, 420) - 44) / word.length) - 8));
+  [...word].forEach((ch, i) => {
+    const b = document.createElement('span');
+    b.className = 'block ' + BLOCK_COLORS[i % 3]; b.textContent = ch;
+    b.style.setProperty('--s', s + 'px'); b.style.animationDelay = (i * .12) + 's';
+    box.append(b);
+  });
+  $('#doneTitle').textContent = last ? '全部完成！' : '拼出來了！';
+  $('#doneText').textContent = last ? '你找到了所有單字：' + state.words.join('、') : '還有 ' + (state.words.length - state.idx - 1) + ' 個單字等你找。';
+  $('#nextBtn').textContent = last ? '再玩一次' : '下一個單字';
+  $('#doneSheet').classList.add('on');
+  say(word, .7);
+  vibrate([80,60,80]);
+}
+$('#nextBtn').addEventListener('click', () => {
+  if (state.idx >= state.words.length - 1) state.idx = 0; else state.idx++;
+  state.found = []; save(); renderSlots();
+  $('#doneSheet').classList.remove('on');
+  say(currentWord(), .7);
+});
+
+function handleText(text){
+  const m = /^LH:(W|L):(.+)$/.exec(String(text).trim());
+  if (!m){ toast('這張不是闖關卡喔'); return {label:'?', color:'sky'}; }
+  if (m[1] === 'W'){
+    const words = cleanWords(m[2]);
+    if (!words.length) return {label:'?', color:'sky'};
+    if (words.join(',') !== state.words.join(',')){
+      loadMission(words);
+      toast('任務開始！一共 ' + words.length + ' 個單字');
+      say("Let's go!", .95);
+    } else {
+      toast('任務已經載入，開始找字母吧！');
+    }
+    return {label:'GO', color:'sun'};
+  }
+  const L = m[2].charAt(0);
+  if (!state.words.length){ toast('先到起點掃描任務卡'); return {label:L, color:'sky'}; }
+  const word = currentWord();
+  if (!word) return {label:L, color:'sky'};
+  if (state.found.includes(L)){
+    toast(L + ' 已經找到了，去找別的字母吧'); say(L);
+    return {label:L, color:'sun'};
+  }
+  if (word.includes(L)){
+    state.found.push(L); save(); renderSlots(L); say(L); vibrate(60);
+    if ([...word].every(c => state.found.includes(c))) setTimeout(complete, 900);
+    else toast('找到 ' + L + ' 了！');
+    return {label:L, color:'leaf'};
+  }
+  toast(L + ' 不在 ' + word + ' 裡面，再找找看'); say(L); vibrate([30,40,30]);
+  return {label:L, color:'berry'};
+}
+
+/* ---------- play: camera & tracking ---------- */
+const video = $('#cam'), ov = $('#ov'), octx = ov.getContext('2d');
+const det = document.createElement('canvas');
+const dctx = det.getContext('2d', {willReadFrequently:true});
+let stream = null, running = false, scanTimer = null, track = null, shown = null;
+
+function showCamErr(msg){ const e = $('#camErr'); e.textContent = msg; e.hidden = false; }
+async function startCam(){
+  primeSpeech();
+  $('#camErr').hidden = true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showCamErr('這個瀏覽器無法使用相機。請用手機的 Safari 或 Chrome 直接開啟這個網頁。'); return;
+  }
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:false, video:{facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720}}});
+    video.srcObject = stream;
+    await video.play();
+    running = true;
+    $('#startSheet').classList.remove('on');
+    scanLoop(); requestAnimationFrame(draw);
+  }catch(e){
+    showCamErr(e && e.name === 'NotAllowedError'
+      ? '相機權限被拒絕了。請在瀏覽器設定裡允許相機，再按一次「開啟相機」。'
+      : '無法開啟相機（' + (e && e.name ? e.name : '未知錯誤') + '）。如果是在 claude.ai 裡開啟，相機會被擋住，請改用老師架設的網址。');
+  }
+}
+function stopCam(){
+  running = false; clearTimeout(scanTimer); track = null; shown = null;
+  if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+}
+function enterPlay(){
+  renderSlots();
+  $('#doneSheet').classList.remove('on');
+  if (!running){ $('#startSheet').classList.add('on'); showLoaded(); }
+}
+$('#startBtn').addEventListener('click', startCam);
+$('#manualBtn').addEventListener('click', () => {
+  const words = cleanWords($('#manualWords').value);
+  if (!words.length){ showCamErr('請輸入至少一個英文單字。'); return; }
+  loadMission(words); $('#camErr').hidden = true; showLoaded();
+});
+function showLoaded(){
+  const m = $('#loadMsg');
+  if (state.words.length){ m.textContent = '✓ 已載入任務：' + state.words.join('、') + '。按「開啟相機」開始找字母！'; m.hidden = false; }
+  else m.hidden = true;
+}
+
+function toScreen(p, f, vw, vh){
+  const cw = ov.clientWidth, ch = ov.clientHeight;
+  const s = Math.max(cw / vw, ch / vh);
+  return {x:(p.x / f) * s + (cw - vw * s) / 2, y:(p.y / f) * s + (ch - vh * s) / 2};
+}
+function scanLoop(){
+  if (!running) return;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (vw && vh && typeof jsQR === 'function'){
+    const f = Math.min(1, 640 / Math.max(vw, vh));
+    const w = Math.round(vw * f), h = Math.round(vh * f);
+    if (det.width !== w || det.height !== h){ det.width = w; det.height = h; }
+    dctx.drawImage(video, 0, 0, w, h);
+    const img = dctx.getImageData(0, 0, w, h);
+    const code = jsQR(img.data, w, h, {inversionAttempts:'dontInvert'});
+    if (code && code.data) onCode(code, f, vw, vh);
+  }
+  scanTimer = setTimeout(scanLoop, 90);
+}
+function onCode(code, f, vw, vh){
+  const L = code.location;
+  const pts = [L.topLeftCorner, L.topRightCorner, L.bottomRightCorner, L.bottomLeftCorner].map(p => toScreen(p, f, vw, vh));
+  const x = pts.reduce((a,p) => a + p.x, 0) / 4;
+  const y = pts.reduce((a,p) => a + p.y, 0) / 4;
+  const size = (Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) + Math.hypot(pts[3].x - pts[0].x, pts[3].y - pts[0].y)) / 2;
+  const angle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+  const now = performance.now();
+  const isNew = !track || track.text !== code.data || now - track.seen > 1500;
+  if (isNew){
+    shown = null;
+    track = {x, y, size, angle, text:code.data, seen:now, born:now, kind:handleText(code.data)};
+  } else {
+    Object.assign(track, {x, y, size, angle, seen:now});
+  }
+}
+function rr(x, y, w, h, r){
+  octx.beginPath();
+  octx.moveTo(x + r, y); octx.lineTo(x + w - r, y); octx.quadraticCurveTo(x + w, y, x + w, y + r);
+  octx.lineTo(x + w, y + h - r); octx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  octx.lineTo(x + r, y + h); octx.quadraticCurveTo(x, y + h, x, y + h - r);
+  octx.lineTo(x, y + r); octx.quadraticCurveTo(x, y, x + r, y); octx.closePath();
+}
+function easeOutBack(t){ const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+function draw(now){
+  if (!running) return;
+  requestAnimationFrame(draw);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cw = ov.clientWidth, ch = ov.clientHeight;
+  if (ov.width !== Math.round(cw * dpr) || ov.height !== Math.round(ch * dpr)){
+    ov.width = Math.round(cw * dpr); ov.height = Math.round(ch * dpr);
+  }
+  octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  octx.clearRect(0, 0, cw, ch);
+  const visible = track && now - track.seen < 450;
+  $('#aim').classList.toggle('hide', !!visible);
+  if (!visible){ shown = null; return; }
+  if (!shown) shown = {x:track.x, y:track.y, size:track.size, angle:track.angle};
+  else {
+    const k = .35;
+    shown.x += (track.x - shown.x) * k; shown.y += (track.y - shown.y) * k;
+    shown.size += (track.size - shown.size) * k;
+    let da = track.angle - shown.angle; da = Math.atan2(Math.sin(da), Math.cos(da));
+    shown.angle += da * k;
+  }
+  const t = (now - track.born) / 1000;
+  const pop = reduceMotion ? 1 : easeOutBack(Math.min(1, t / .45));
+  const bob = reduceMotion ? 0 : Math.sin(t * 3.2) * shown.size * .05;
+  const s = Math.max(10, shown.size * .95 * pop);
+  const col = PAL[track.kind.color] || PAL.sky;
+  const label = track.kind.label;
+  octx.save();
+  octx.translate(shown.x, shown.y); octx.rotate(shown.angle);
+  octx.fillStyle = 'rgba(0,0,0,.28)';
+  octx.beginPath(); octx.ellipse(0, shown.size * .12, s * .46, s * .13, 0, 0, Math.PI * 2); octx.fill();
+  octx.translate(0, -shown.size * .38 - bob);
+  const r = s * .16, depth = s * .08;
+  octx.fillStyle = col.d; rr(-s/2, -s/2 + depth, s, s, r); octx.fill();
+  octx.fillStyle = col.c; rr(-s/2, -s/2, s, s, r); octx.fill();
+  octx.fillStyle = col.t;
+  octx.font = '800 ' + (label.length > 1 ? s * .42 : s * .7) + 'px "Baloo 2","Arial Rounded MT Bold",sans-serif';
+  octx.textAlign = 'center'; octx.textBaseline = 'middle';
+  octx.fillText(label, 0, s * .07);
+  octx.restore();
+}
+
+/* keyboard simulation for testing on a computer */
+addEventListener('keydown', e => {
+  if (location.hash !== '#play') return;
+  if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (/^[a-z]$/i.test(e.key) && !$('#doneSheet').classList.contains('on')) handleText('LH:L:' + e.key.toUpperCase());
+});
+addEventListener('resize', () => { if (location.hash === '#play') renderSlots(); });
+try{ speechSynthesis.onvoiceschanged = () => {}; }catch(e){}
+
+buildCards();
+route();
+})();
+</script>
+</body>
+</html>
